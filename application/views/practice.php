@@ -18,7 +18,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12 mt-5">
-                <h1 style="text-align:center">Codeigniter CRUD usin Ajax</h1>
+                <h1 style="text-align:center">Codeigniter CRUD using Ajax</h1>
                 <hr style="background-color:black;color:black;height:4px">
             </div>
 
