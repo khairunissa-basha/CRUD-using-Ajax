@@ -9,8 +9,36 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet"  href="assets/css/styles.css"> 
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css'> 
+    
 
     <title>Crud</title>
+    <style>
+        .active{
+            color:blue;
+        }
+        #sort_username_asc{
+            background: none!important;
+            border:none;
+            padding:0.05rem;
+        }
+        #sort_username_desc{
+            background: none!important;
+            border:none;
+             padding:0.05rem;
+        }
+        #sort_useremail_asc{
+            background: none!important;
+            border:none;
+            padding:0.05rem;
+        }
+        #sort_useremail_desc{
+            background: none!important;
+            border:none;
+             padding:0.05rem;
+        }
+        </style>
 </head>
 
 <body>
@@ -80,12 +108,13 @@
                                         <input type="hidden" id="edit_modal_id">
                                         <div class="form-group">
                                             <label for="">Name:</label>
-                                            <input type="text"  id="edit_name" class="form-control">
+                                            <input type="text"  name="edit_name" id="edit_name" class="form-control">
 
                                         </div>
                                         <div class="form-group">
                                             <label for="">E-mail Address</label>
-                                            <input type="text" id="edit_email" class="form-control">
+                                            <input type="hidden" name="original_email" id="original_email">
+                                            <input type="text" name="edit_email" id="edit_email" class="form-control">
                                         </div>
                                     </form>
                                 </div>
@@ -100,23 +129,21 @@
                     </div>
                 </div>
 
-
+            <div class="row">
+                <div class="col-md-8">
+                    <input type="text" name="search_key" id="search_key" class="form-control" placeholder="Please enter what you want to search">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" name="search" id="search_btn" class="btn btn-warning">Search</button>
+                    <button type="button" name="reset" id="reset_btn" class="btn btn-info">Reset</button>
+                </div>
+            </div>
+                
                 <div class="row">
-                    <div class="col-md-12 mt-2">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>E-mail</th>
-                                    <th>Action</th>
-                                </tr>
+                    <div class="col-md-12">
+                        <div id="ajax-content">
 
-                            </thead>
-                            <tbody id="tbody">
-
-                            </tbody>
-                        </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,7 +153,7 @@
 
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!-- first jquery ,then popper,then bootstrap.js-->
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
+   
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
     </script>
@@ -136,8 +163,12 @@
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        
         $(document).ready(function() {
-            fetch();
+            // first time load
+            fetch(page_url=false);
+
+           
             $('.modal').on('hidden.bs.modal', function() {
                 $(this).find('form')[0].reset();
             });
@@ -162,18 +193,13 @@
                     if (data.response == "success") {
                         toastr["success"](data.message);
                         $("#crudModal").modal('hide');
-
-                        //redirect(current_url());
-                        //window.location.href = response.redirect;
                         fetch();
-                        //location.reload();
-
-
-                    } else {
+                      
+} else {
                         console.log(data.message);
                         for (var msg in data.message) {
                             toastr['error'](data.message[msg]);
-                            //console.log(msg);
+                          
 
                         }
                     }
@@ -184,35 +210,95 @@
 
         });
 
-        function fetch() {
-            $.ajax({
-                url: "<?php echo base_url(); ?>practice/fetch",
-                type: "get",
-                dataType: "json",
-                success: function(data) {
-                    var i = 1;
-                    var tbody = "";
-                    for (var key in data) {
-                        tbody += "<tr>";
-                        tbody += "<td>" + i++ + "</td>";
-                        tbody += "<td>" + data[key]['name'] + "</td>";
-                        tbody += "<td>" + data[key]['email'] + "</td>";
-                        tbody += `<td>
-                                    <a href="#" id="del" value="${data[key]['id']}">Delete</a>
-                                    <a href="#" id="edit" value="${data[key]['id']}">Edit</a>
-                                </td>`;
-                        tbody += "<tr>";
-                    }
 
-                    $("#tbody").html(tbody);
+        //on search
+         $(document).on('click','#search_btn',function(e){
+            fetch(page_url = false);
+            event.preventDefault();
+         })
+
+         //on clicking reset
+         $(document).on('click','#reset_btn',function(e){
+            $('#search_key').val('');
+            fetch(page_url=false);
+            e.preventDefault();
+         })
+
+         //on clicking page links
+         $(document).on('click','.pagination li a',function(){
+            var page_url = $(this).attr('href');
+            var sort_by= $('#hidden_sort_by').val();
+          
+            
+            fetch(page_url,sort_by);
+            return false;
+        })
+
+        //Adding class active to the clicked sort  button
+        $(document).on('click','.sort',function(){
+            
+            var sort_by = $(this).attr('data-sort');
+          
+            var hidden_sort_by = $('#hidden_sort_by').val();
+           
+           if(sort_by == 'sort_username_asc'){
+                 $('#sort_username_asc').addClass('active');
+           }else{
+            $('#sort_username_asc').removeClass('active');
+           }
+           if(sort_by == 'sort_username_desc'){
+                 $('#sort_username_desc').addClass('active');
+           }else{
+            $('#sort_username_desc').removeClass('active');
+           }
+           if(sort_by == 'sort_email_asc'){
+                 $('#sort_useremail_asc').addClass('active');
+           }else{
+            $('#sort_useremail_asc').removeClass('active');
+           }
+           if(sort_by == 'sort_email_desc'){
+                 $('#sort_useremail_desc').addClass('active');
+           }else{
+            $('#sort_useremail_desc').removeClass('active');
+           }
+            
+        
+           fetch(false,sort_by);
+        
+       
+    })
+
+        //listing function with filter,pagination and sorting
+        function fetch(page_url=false,sort_by=null) {
+           
+            var search_key = $('#search_key').val();
+
+            var base_url = "<?php echo site_url('practice/fetch')?>";
+            if(page_url == false){
+             page_url = base_url;
+            }
+
+            var data ={search_key : search_key};
+            if(sort_by!=null){
+                data['sort_by']=sort_by;
+            }
+
+            console.log('data....',data);
+           
+            $.ajax({
+                url: page_url,
+                type: "post",
+                data : data,
+                    success: function(response) {
+                    
+                    console.log(response);
+                    $("#ajax-content").html(response);
                 }
             });
         }
 
-        //fetch();
 
-
-
+        //function fro edit event
         $(document).on("click", "#edit", function(e) {
             e.preventDefault();
             var edit_id = $(this).attr("value");
@@ -220,27 +306,28 @@
                 alert('id is required');
             } else {
                 $.ajax({
-                    url: "<?php echo base_url(); ?>practice/edit",
-                    type: "post",
+                    url: '<?php echo base_url(); ?>practice/edit/'+edit_id,
+                    type: "get",
                     dataType: "json",
-                    data: {
-                        edit_id: edit_id
-                    },
                     success: function(data) {
                          if (data.response === "success") {
                            $('#editModal').modal('show');
                            $("#edit_modal_id").val(data.post.id);
                            $("#edit_name").val(data.post.name);
                            $("#edit_email").val(data.post.email);
+                           $("#original_email").val(data.post.email);
                           
                          } 
                         else {
                             toastr["error"](data.message);
+                            console.log(edit_id);
                         }
                     }
                 });
             }
         });
+
+        //function for update event
 
         $(document).on("click", "#update", function(e){
             e.preventDefault();
@@ -248,10 +335,8 @@
             var edit_id = $("#edit_modal_id").val();
             var edit_name = $("#edit_name").val();
             var edit_email = $("#edit_email").val();
+            var original_email = $("#original_email").val();
 
-            if(edit_id == '' | edit_name == ''| edit_email == ''){
-                alert('All fields must be filled');
-            }else{
                 $.ajax({
                 url:"<?php echo base_url();?>practice/update",
                 type:"post",
@@ -259,7 +344,8 @@
                 data:{
                     edit_id : edit_id,
                     edit_name : edit_name,
-                    edit_email : edit_email
+                    edit_email : edit_email,
+                    original_email : original_email
                 },
                 success : function(data){
                     
@@ -268,15 +354,20 @@
                         $("#editModal").modal('hide');
                         fetch();
                    }else{
-                    toastr["error"](data.message);
+                    console.log(data.message);
+                    for(var msg in data.message){
+                        toastr['error'](data.message[msg]);
+                    }
+                    
                    }
                     
                 }
             });
-            }
+            //}
             
         });
 
+        // Function for delete event
         $(document).on("click",'#del', function(e){
             e.preventDefault();
 
@@ -287,7 +378,7 @@
             }else{
                 const swalWithBootstrapButtons = Swal.mixin({
   customClass: {
-    confirmButton: 'btn btn-success',
+    confirmButton: 'btn btn-success ml-2',
     cancelButton: 'btn btn-danger'
   },
   buttonsStyling: false
@@ -340,6 +431,7 @@ swalWithBootstrapButtons.fire({
                 
             }
         });
+        
     </script>
 </body>
 
